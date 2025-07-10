@@ -1,0 +1,806 @@
+\documentclass[english,12pt,a4paper,openany]{book}
+\usepackage[T1]{fontenc}
+\usepackage[inner=3cm, outer=2cm, top=2.5cm, bottom=2.5cm]{geometry}
+\usepackage{amssymb, graphicx, amsfonts, amsthm, tikz, listings, indentfirst, multirow, caption, pgfplots, newpx}
+\usepackage[table,xcdraw]{xcolor}
+\usepackage[bahasa]{babel}
+\usetikzlibrary{shapes.geometric, arrows, shapes.symbols} 
+\usepackage[toc,page]{appendix}
+\usepackage[style=apa, backend=biber]{biblatex} 
+\usepackage{float}
+\usepackage{placeins}
+\renewcommand{\bibname}{Daftar Pustaka}
+\usepackage[utf8]{inputenc}
+\usepackage{graphicx} % Untuk memasukkan gambar
+\usepackage{longtable} % Untuk tabel panjang yang bisa menembus halaman
+\usepackage{array} % Untuk memperbaiki pengaturan tabel
+\usepackage{caption} % Untuk mengatur caption tabel
+\usepackage{amsmath} % Untuk simbol matematika
+
+\begin{document}
+	
+	\begin{titlepage}
+		\centering
+		{\Large \textsc{Laporan Tugas Akhir}}\\[2ex]
+		{\LARGE \bfseries Komputasi Matematika}\\[8ex]
+		{\large Analisis \textit{Clustering} Menggunakan Algoritma K-Means\\
+			pada Dataset \textit{Heart Failure Clinical Record}}\\[1.5cm]
+		
+		% Logo Universitas
+		%\includegraphics[width=0.25\textwidth]{logounesa.png}\\[7ex]
+		\textbf{Kelompok 3 - 2023F}\\[2ex]
+		
+		% Anggota Kelompok
+		\begin{tabular}{l l}
+			Ainur Rahman Hidayat & - 23030214033 \\
+			Maeva Wulandari & - 23030214047 \\
+			Ganis Amalia Feronika & - 23030214082 \\
+			Nabilah Nesya Adiarni Azzahra & - 23030214098 \\
+			Pricila Sisi Austin Soko & - 23030214119 \\
+		\end{tabular}\\[3cm]
+		
+		% Dosen Pengampu
+		Dosen Pengampu:\\[1ex]
+		Dimas Avian \textsc{Maulana}, M.Si.\\
+		% Dr. Rahmawati Erma Standsyah, M.Si. (untuk 2023B jika diperlukan)\\
+		
+		\vfill
+		
+		% Institusi dan Program Studi
+		{\large \textsc{Kementerian Pendidikan Tinggi, Sains, dan Teknologi}} \\
+		{\large \textsc{Universitas Negeri Surabaya}} \\
+		{\large \textsc{Fakultas Matematika dan Ilmu Pengetahuan Alam}} \\
+		{\large \textsc{Program Studi S1 Matematika}}\\
+		
+		\vspace{1cm}
+		
+		% Tanggal di bagian bawah halaman
+		{\large \today}\par
+		
+	\end{titlepage}
+	\tableofcontents
+	
+	\chapter{Pendahuluan}
+	\section{Latar Belakang}
+	Kesehatan adalah salah satu pilar utama dalam kehidupan manusia, dengan penyakit kardiovaskular menjadi salah satu ancaman terbesar bagi kesejahteraan masyarakat di seluruh dunia. Setiap tahunnya, lebih dari 17 juta jiwa meninggal akibat penyakit kardiovaskular, menjadikannya sebagai penyebab utama kematian global. Di Indonesia, beban penyakit ini juga sangat signifikan. Berdasarkan data Riset Kesehatan Dasar (Riskesdas) tahun 2018, sekitar 1,5 persen dari populasi, atau lebih dari 2,7 juta orang, menderita penyakit jantung. Bahkan, laporan dari \textit{Global Burden of Disease} tahun 2020 menunjukkan bahwa penyakit kardiovaskular menyebabkan sekitar 651.481 kematian per tahun di Indonesia. Gagal jantung, salah satu jenis penyakit kardiovaskular yang serius, terjadi ketika jantung tidak mampu memompa darah dengan cukup untuk memenuhi kebutuhan tubuh. Penyakit ini menjadi penyebab kematian kedua setelah stroke di Indonesia, dengan prevalensi yang diperkirakan mencapai lebih dari 1 juta orang (Chicco D. et al., 2020).\\
+	
+	Dalam beberapa tahun terakhir, kemajuan teknologi kesehatan, termasuk penggunaan rekam medis elektronik \textit{(Electronic Health Records/EHR)}, telah menyediakan data berharga yang mencakup informasi seperti gejala, karakteristik tubuh, dan hasil uji laboratorium. Data ini memberikan peluang besar untuk analisis yang lebih mendalam guna mengidentifikasi pola dan hubungan yang sulit ditemukan melalui metode konvensional. Namun, meskipun telah banyak kemajuan dalam diagnosis dan pengobatan gagal jantung, tantangan tetap ada dalam memahami pola data pasien yang kompleks. Analisis data yang cermat diperlukan untuk membantu tenaga medis memahami faktor-faktor yang berkontribusi pada prognosis pasien.\\
+	
+	Dalam konteks ini, penerapan metode \textit{machine learning} seperti analisis \textit{clustering} dengan algoritma K-Means menjadi relevan. Algoritma ini dapat mengelompokkan pasien berdasarkan karakteristik tertentu untuk mengidentifikasi pola-pola tersembunyi yang dapat mendukung pengambilan keputusan medis. Pemilihan data gagal jantung untuk penelitian ini didasarkan pada beberapa alasan.
+	\begin{enumerate}
+		\item Penyakit ini memiliki dampak yang besar terhadap mortalitas dan morbiditas, sehingga analisis yang lebih mendalam sangat diperlukan untuk mendukung upaya pencegahan dan pengobatan. 
+		\item Dataset ini mencakup variabel-variabel yang relevan secara klinis, seperti usia, jenis kelamin, riwayat penyakit (anemia, diabetes, hipertensi), hasil uji laboratorium (kreatinin fosfokinase, kadar kreatinin serum, kadar natrium serum), hingga waktu penanganan, yang kesemuanya berkontribusi pada prognosis pasien gagal jantung. 
+		\item Dataset ini memberikan peluang untuk mengeksplorasi bagaimana teknik \textit{machine learning} dapat diterapkan dalam konteks medis untuk mengatasi tantangan interpretasi data yang kompleks. 
+	\end{enumerate}  
+	
+	Berbagai penelitian terdahulu menunjukkan relevansi penerapan \textit{machine learning} untuk analisis data gagal jantung. Zhang et al. (2022) melakukan penelitian tentang prediksi prognosis pada pasien lanjut usia dengan sepsis menggunakan random survival forest, sementara Ali M., Al-Doori V., et al. (2023) mengusulkan pendekatan \textit{machine learning} untuk analisis faktor risiko dan prediksi kelangsungan hidup pasien gagal jantung. Khanna D. et al. (2020) juga melakukan studi komparatif teknik klasifikasi (SVM, regresi logistik, dan jaringan saraf) untuk memprediksi prevalensi penyakit jantung.\\ 
+	
+	Penelitian ini bertujuan untuk menerapkan algoritma K-Means pada dataset gagal jantung guna mengidentifikasi pola-pola tersembunyi yang dapat membantu pengambilan keputusan klinis. Dengan pendekatan ini, penelitian berjudul "Analisis \textit{Clustering} Menggunakan Algoritma K-Means pada Dataset \textit{Heart Failure Clinical Record}" diharapkan dapat memberikan kontribusi signifikan dalam analisis data pasien gagal jantung dan memperluas pemanfaatan machine learning di bidang kesehatan. \\
+	
+	\section{Rumusan Masalah}
+	Berdasarkan latar belakang yang telah diuraikan, rumusan masalah dalam penelitian ini adalah:
+	\begin{enumerate}
+		\item Bagaimana penerapan algoritma K-Means \textit{clustering} dalam mengelompokkan data pasien gagal jantung berdasarkan karakteristik klinis dan laboratorium?  
+		\item Apa saja pola-pola atau kelompok utama yang dapat diidentifikasi dari hasil pengelompokan pasien gagal jantung menggunakan algoritma K-Means?
+		\item Apakah variabel-variabel seperti usia, jenis kelamin, anemia, kadar enzim kreatinin fosfokinase, penderita diabetes, fraksi ejeksi, penderita hipertensi, trombosit, kadar kreatinin serum, kadar natrium serum, riwayat merokok dan waktu penanganan, memiliki kontribusi signifikan dalam menentukan pengelompokan pasien?  
+		\item Bagaimana hasil pengelompokan menggunakan algoritma K-Means dapat membantu pengambilan keputusan klinis dalam pengelolaan pasien gagal jantung?
+	\end{enumerate}
+	
+	
+	\section{Tujuan}
+	Tujuan dari penelitian ini adalah:
+	\begin{enumerate}
+		\item Menerapkan algoritma K-Means \textit{clustering} untuk 
+		mengelompokkan data pasien gagal jantung berdasarkan karakteristik klinis dan hasil laboratorium yang tersedia.
+		\item Mengidentifikasi pola-pola atau kelompok utama dari hasil pengelompokan pasien gagal jantung menggunakan algoritma K-Means.
+		\item Menganalisis kontribusi variabel-variabel seperti  usia, jenis kelamin, anemia, kadar enzim kreatinin fosfokinase, penderita diabetes, fraksi ejeksi, penderita hipertensi, trombosit, kadar kreatinin serum, kadar natrium serum, riwayat merokok dan waktu penanganan dalam menentukan hasil pengelompokan pasien.
+		\item Mengevaluasi bagaimana hasil pengelompokan dengan algoritma K-Means dapat digunakan untuk mendukung pengambilan keputusan klinis dalam pengelolaan pasien gagal jantung.
+	\end{enumerate}
+	\section{Manfaat}
+	Penelitian ini diharapkan dapat memberikan manfaat sebagai berikut:
+	\begin{enumerate}
+		\item \textbf{Manfaat Teoritis:}
+		\begin{enumerate}
+			\item \textbf{Kontribusi pada Pengembangan Ilmu Pengetahuan}\\
+			Penelitian ini memberikan kontribusi yang signifikan dalam pengembangan ilmu pengetahuan di bidang analisis data kesehatan, terutama dalam penerapan machine learning. Khususnya, metode K-Means \textit{clustering} memungkinkan identifikasi pola-pola tersembunyi dalam data klinis pasien gagal jantung. Dengan cara ini, penelitian ini membantu dalam memahami karakteristik pasien berdasarkan berbagai faktor seperti usia, jenis kelamin, gejala, dan riwayat medis, yang berpotensi meningkatkan pengelompokan data pasien.\\
+			
+			Manfaat teoritis ini dapat diukur melalui peningkatan akurasi dan relevansi pengelompokan dibandingkan dengan metode tradisional. Selain itu, kontribusi ini akan tercermin dalam publikasi ilmiah yang mengenalkan pendekatan baru ini kepada komunitas peneliti, serta peningkatan pemahaman mengenai pola-pola kesehatan yang dapat memperkaya literatur tentang gagal jantung.\\
+			\item \textbf{Referensi untuk Penelitian Selanjutnya}\\
+			Penelitian ini dapat menjadi dasar bagi studi lanjutan yang menggunakan algoritma machine learning lainnya, seperti Random Forest atau Support Vector Machines (SVM), yang bertujuan untuk meningkatkan akurasi pengelompokan atau prediksi dalam data medis. Selain itu, penelitian ini membuka peluang untuk mengeksplorasi variabel tambahan, seperti faktor genetik atau lingkungan, yang dapat memperdalam pemahaman tentang faktor-faktor yang mempengaruhi pasien gagal jantung.\\
+			
+			Manfaat ini dapat diukur dari banyaknya penelitian yang merujuk pada penelitian ini dan menerapkan metode atau hasil yang serupa, serta keberhasilan penerapan variabel baru atau metode lain dalam meningkatkan kualitas hasil penelitian lebih lanjut.
+		\end{enumerate}
+		
+		\item \textbf{Manfaat Praktis:}
+		\begin{enumerate}
+			\item \textbf{Bagi Institusi Medis}\\
+			Penelitian ini memiliki manfaat praktis yang sangat penting bagi institusi medis, seperti rumah sakit atau klinik. Dengan mengidentifikasi pola-pola pasien gagal jantung berdasarkan pengelompokan data, rumah sakit dapat merancang strategi perawatan yang lebih tepat dan efisien. Misalnya, pengelompokan pasien berdasarkan tingkat keparahan dapat membantu institusi medis untuk menentukan alokasi sumber daya secara lebih efisien, seperti memberikan perhatian lebih kepada pasien yang lebih serius dan mengelola pasien dengan risiko lebih rendah dengan pendekatan yang lebih sederhana.\\
+			
+			Manfaat praktis ini dapat diukur dengan mengamati peningkatan kualitas perawatan, pengurangan biaya medis, dan penurunan angka rawat inap berulang. Evaluasi dapat dilakukan dengan mengukur waktu perawatan, tingkat kepuasan pasien, dan efisiensi biaya.\\
+			
+			\item \textbf{Bahan Pertimbangan dalam Pengambilan Keputusan Medis}\\
+			Hasil dari penelitian ini dapat digunakan oleh tenaga medis untuk membuat keputusan yang lebih tepat terkait diagnosis dan manajemen risiko. Misalnya, pengelompokan pasien yang lebih akurat dapat membantu dokter menentukan tingkat keparahan penyakit dan memilih terapi yang lebih sesuai. Pasien dengan risiko tinggi bisa mendapatkan pengobatan yang lebih agresif, sedangkan pasien dengan risiko rendah dapat menjalani pendekatan pencegahan yang lebih ringan.\\
+			
+			Manfaat ini bisa diukur dengan peningkatan akurasi diagnosis dan pengurangan waktu yang diperlukan untuk mencapai keputusan yang tepat. Selain itu, manfaat ini dapat terlihat dari pengurangan komplikasi atau peningkatan outcome pasien yang terklaster dengan cara yang lebih efektif dan efisien.
+		\end{enumerate}
+	\end{enumerate}
+	
+	\chapter{Tinjauan Pustaka}
+	
+	\section{Gagal Jantung (Heart Failure)}
+	Gagal jantung adalah kondisi medis kronis di mana jantung tidak mampu memompa darah secara efisien untuk memenuhi kebutuhan metabolisme tubuh. Kondisi ini dapat disebabkan oleh kelemahan otot jantung atau kekakuan dinding jantung yang mengurangi kapasitas pompa darahnya(Doifode et al., 2024). Menurut \textit{American Heart Association} (AHA), gagal jantung adalah salah satu penyebab utama kematian dan kesakitan di seluruh dunia yang memerlukan penanganan segera dan menyeluruh untuk meningkatkan prognosis pasien.\\
+	
+	Menurut  \textit{World Health Organization} (WHO), beberapa penyebab utama gagal jantung meliputi penyakit arteri koroner, hipertensi, serangan jantung (\textit{myocardial infarction}), kelainan katup jantung, dan kardiomiopati. Penyakit arteri koroner adalah penyebab yang paling umum, di mana aliran darah ke otot jantung terganggu akibat penyempitan atau penyumbatan arteri. Selain itu, hipertensi yang tidak terkendali menyebabkan beban kerja jantung meningkat, yang akhirnya melemahkan otot jantung. Kerusakan otot jantung akibat serangan jantung atau kelainan struktural pada katup jantung juga turut berkontribusi terhadap perkembangan gagal jantung.\\
+	
+	Gagal jantung ditandai oleh gejala seperti sesak napas, kelelahan, pembengkakan di kaki atau perut akibat retensi cairan, dan ketidakmampuan melakukan aktivitas fisik yang berat. Diagnosisnya melibatkan kombinasi wawancara klinis, pemeriksaan fisik, dan tes diagnostik. Tes seperti ekokardiografi dapat memberikan gambaran tentang fungsi jantung, sementara kadar natriuretic peptide (BNP atau NT-proBNP) dalam darah sering digunakan untuk mengonfirmasi gagal jantung. Elektrokardiogram (EKG) juga membantu mendeteksi irama jantung yang abnormal (Halvorsen et al., 2022).\\
+	
+	Pengobatan gagal jantung mencakup terapi medis seperti diuretik untuk mengurangi retensi cairan, ACE inhibitors untuk melebarkan pembuluh darah, dan beta-blockers untuk mengurangi tekanan darah serta memperbaiki efisiensi jantung. Pada kasus yang lebih parah, perangkat medis seperti defibrillator implan atau alat bantu ventricular dapat digunakan. Operasi transplantasi jantung merupakan opsi terakhir bagi pasien yang tidak merespons pengobatan lainnya. Selain itu, rehabilitasi jantung yang melibatkan latihan fisik dan edukasi pasien sangat penting untuk meningkatkan kualitas hidup.\\
+	
+	Gagal jantung memengaruhi lebih dari 64 juta orang di seluruh dunia, dengan tingkat kejadian yang terus meningkat, terutama di kalangan populasi lansia. Di Amerika Serikat saja, lebih dari 6,2 juta orang hidup dengan kondisi ini. Prevalensi gagal jantung sering dikaitkan dengan meningkatnya faktor risiko seperti hipertensi, obesitas, dan diabetes (Savarese et al., 2022). Oleh karena itu, deteksi dini dan pengobatan yang tepat sangat penting untuk mencegah perkembangan penyakit.   
+	
+	
+	\section{Dataset \textit{Heart Failure Clinical Record}}
+	Dataset Heart Failure Clinical Records adalah kumpulan data klinis yang dirancang untuk mendukung analisis prediktif dan penelitian terkait kondisi gagal jantung. Dataset ini mencakup data dari 299 pasien yang mengalami gagal jantung, dengan informasi yang mencakup 13 atribut medis dan demografis, seperti usia, kadar kreatinin serum, fraksi ejeksi ventrikel kiri (\textit{ejection fraction}), tekanan darah tinggi, dan kebiasaan merokok (Davide Chicco et al., 2020). Dataset ini berasal dari \textit{Faisalabad Institute of Cardiology} dan \textit{Allied Hospital}, Faisalabad, Pakistan, dan tersedia secara luas melalui \textit{UCI Machine Learning Repository}, sebuah repositori terkemuka yang sering digunakan oleh komunitas penelitian global.\\
+	
+	Dataset ini telah banyak digunakan dalam eksperimen \textit{machine learning}, khususnya untuk klasterisasi, karena beberapa alasan utama, yaitu :
+	\begin{enumerate}
+		\item Dataset ini memiliki ukuran yang relatif kecil, dengan dimensi 299 sampel dan 13 fitur, sehingga ideal untuk penelitian awal dan eksplorasi metode \textit{machine learning}.
+		\item Atribut yang disediakan mencakup data numerik dan biner, yang memungkinkan penerapan berbagai algoritma klasterisasi seperti K-Means atau \textit{Hierarchical Clustering.}
+		\item Relevansi klinisnya sangat tinggi, mengingat tingginya tingkat kematian akibat gagal jantung. 
+	\end{enumerate}
+	Dataset ini dapat membantu segmentasi pasien menjadi kelompok risiko berdasarkan karakteristik medis mereka, yang pada akhirnya mendukung pengambilan keputusan klinis untuk intervensi yang lebih efektif. Selain itu, dataset ini memberikan peluang untuk mengeksplorasi pola tersembunyi yang dapat meningkatkan pemahaman tentang faktor risiko gagal jantung.\\
+	
+	Dataset ini telah digunakan dalam berbagai penelitian, termasuk aplikasi metode prediksi seperti klasifikasi dan eksplorasi pola menggunakan algoritma klasterisasi. Dengan keberagaman atribut dan relevansi medis yang tinggi, dataset ini menjadi sumber data yang berharga dalam penelitian berbasis \textit{machine learning} untuk pengelolaan pasien gagal jantung.
+	
+	\section{Metode \textit{Clustering}}
+	Metode \textit{clustering} adalah salah satu teknik utama dalam analisis data yang bertujuan untuk mengelompokkan data ke dalam kelompok-kelompok (klaster) berdasarkan kesamaan tertentu. Dalam \textit{clustering}, objek-objek dalam kelompok yang sama memiliki karakteristik yang lebih mirip satu sama lain dibandingkan dengan objek-objek di kelompok lain. Teknik ini termasuk dalam kategori \textit{unsupervised learning}, yang berarti tidak memerlukan label atau target variabel untuk melatih modelnya.\\
+	
+	\textbf{Jenis-Jenis Metode \textit{Clustering}}
+	\begin{enumerate}
+		\item \textit{Clustering} Berbasis Partisi\\
+		Metode ini mempartisi dataset menjadi beberapa kelompok, biasanya dengan meminimalkan jarak antara data dalam klaster. Contoh populer adalah algoritma K-Means, yang membagi data ke dalam sejumlah k cluster berdasarkan centroid. Algoritma ini iteratif dan bertujuan untuk meminimalkan \textit{intra-cluster variance}.
+		\item \textit{Clustering} Berbasis Hirarki\\
+		Metode ini menciptakan struktur hierarki dalam bentuk pohon (dendrogram). Data diorganisasikan mulai dari satu klaster besar hingga klaster kecil, atau sebaliknya. \textit{Clustering} hierarki dibagi menjadi dua pendekatan, yaitu agglomerative (pendekatan bottom-up) dan divisive (pendekatan top-down).
+		\item \textit{Clustering} Berbasis Kepadatan\\
+		Metode ini mengelompokkan data berdasarkan kepadatan titik-titik data dalam ruang tertentu. Algoritma seperti DBSCAN (\textit{Density-Based Spatial Clustering of Applications with Noise}) sering digunakan untuk mendeteksi klaster dengan bentuk arbitrer serta menangani data dengan outlier (Ester et al., 1996).
+		\item \textit{Clustering }Berbasis Model\\
+		Metode ini mengasumsikan bahwa data dihasilkan dari distribusi tertentu, seperti distribusi Gaussian, dan mencoba untuk menemukan parameter model yang paling cocok untuk mendeskripsikan data. Contoh yang sering digunakan adalah \textit{Gaussian Mixture Models} (GMM).
+	\end{enumerate}
+	
+	\textbf{Aplikasi dan Manfaat \textit{Clustering}}\\
+	
+	\textit{Clustering} digunakan di berbagai bidang, termasuk:
+	\begin{itemize}
+		\item Kesehatan: Mengelompokkan pasien berdasarkan gejala atau faktor risiko untuk membantu diagnosis atau rencana perawatan yang lebih personal.
+		\item Pemasaran: Mengelompokkan pelanggan berdasarkan preferensi atau perilaku untuk strategi pemasaran yang ditargetkan.
+		\item Biologi: Mengelompokkan gen atau protein berdasarkan fungsi atau ekspresi mereka.
+		\item Analisis Sosial: Menganalisis jaringan sosial untuk menemukan komunitas atau kelompok yang saling berhubungan (Jain, AK et al., 2000).
+	\end{itemize}
+	
+	\textbf{\textit{Clustering} pada \textit{Dataset Heart Failure Clinical Records}}
+	
+	Dalam konteks dataset \textit{Heart Failure Clinical Records}, metode \textit{clustering} seperti K-Means sangat relevan. Algoritma ini digunakan untuk mengelompokkan pasien berdasarkan atribut klinis seperti usia, kadar natrium serum, atau fraksi ejeksi. Tujuan utamanya adalah untuk menemukan pola tersembunyi dalam data pasien yang dapat membantu mengidentifikasi kelompok risiko tinggi dan rendah. Informasi ini dapat digunakan oleh tenaga medis untuk menentukan prioritas perawatan atau intervensi yang lebih tepat. Dengan demikian, \textit{clustering} berfungsi sebagai alat penting untuk mendukung pengambilan keputusan berbasis data dalam manajemen gagal jantung (Davide Chicco et al., 2020).
+	
+	
+	\section{Algoritma K-Means dalam Analisis Data Medis}
+	
+	Algoritma K-Means adalah metode clustering berbasis partisi yang membagi data menjadi beberapa kelompok (klaster) berdasarkan kesamaan antar data. Setiap klaster ditentukan oleh centroid, yang merupakan rata-rata dari semua data dalam klaster tersebut. Proses iteratif dilakukan untuk meminimalkan variasi internal dalam klaster dan memaksimalkan perbedaan antar klaster. Tujuan utama adalah mengurangi jarak total kuadrat antara data dan centroid klaster (fungsi SSE—Sum of Squared Errors).\\
+	
+	Dalam analisis medis, K-Means sering digunakan untuk memahami pola data pasien dan mendukung pengambilan keputusan klinis. Contoh penggunaannya adalah untuk membagi pasien berdasarkan karakteristik seperti usia, kadar gula darah, tekanan darah, atau hasil lab lainnya, mengidentifikasi kelompok pasien dengan risiko tinggi, misalnya gagal jantung atau diabetes, memprediksi bagaimana kelompok tertentu merespons pengobatan tertentu. \\
+	
+	Kumar et al. (2020) menunjukkan bagaimana K-Means membantu mengelompokkan pasien gagal jantung berdasarkan parameter fisiologis seperti Ejection fraction, Kadar natrium serum, usia dan waktu penanganan. Hal ini memungkinkan tenaga medis untuk mengidentifikasi kelompok risiko tinggi dan mengambil langkah preventif lebih awal. \\
+	
+	Pada dataset \textit{Heart Failure Clinical Records}, K-Means dapat digunakan untuk mengelompokkan pasien berdasarkan usia, kadar natrium serum, dan fraksi ejeksi untuk memahami risiko gagal jantung. Serta dapat mengidentifikasi pola pasien dengan risiko tinggi untuk komplikasi medis.  
+	
+	
+	
+	
+	\chapter{Metode Penelitian} 
+	\section{Deskripsi Penelitian dan Dataset}
+	
+	Penelitian ini bertujuan untuk mengelompokkan pasien gagal jantung berdasarkan pola data klinis mereka menggunakan algoritma K-Means Clustering. Dataset yang digunakan adalah Heart Failure Clinical Records yang diambil dari UCI Machine Learning Repository. Dataset ini berisi 299 entri pasien dengan 1 variabel target (kematian akibat gagal jantung) dan 12 fitur klinis, antara lain usia, tekanan darah, kadar kolesterol, fraksi ejeksi, kadar natrium serum, kadar kreatinin serum, serta status medis lainnya seperti riwayat diabetes dan hipertensi.
+	
+	Proses analisis dimulai dengan eksplorasi awal data untuk memahami distribusi setiap fitur, mendeteksi adanya outlier, dan mengidentifikasi pola-pola awal dalam dataset. Tahap ini bertujuan untuk memastikan bahwa data yang digunakan memenuhi kualitas yang diperlukan untuk analisis lebih lanjut. Selain itu, eksplorasi data juga mencakup langkah-langkah pembersihan data, seperti menangani nilai yang hilang atau tidak konsisten, serta visualisasi data untuk mendapatkan wawasan mengenai hubungan antar fitur yang ada sebelum algoritma K-Means diterapkan.
+	
+	\section{Variabel Penelitian}
+	Variabel adalah sesuatu yang dapat diukur atau diamati dan memiliki nilai yang bervariasi.
+	\begin{enumerate}
+		\item Variabel independen (bebas): Karakteristik klinis dan laboratorium pasien yang mencakup:
+		\begin{itemize}
+			\item Usia
+			\item Kadar natrium serum
+			\item Ejection fraction
+			\item Serum creatinine
+		\end{itemize}
+		\item Variabel dependen (terikat): Kelompok hasil \textit{clustering} yang dihasilkan oleh algoritma K-Means. Kelompok ini mencerminkan pola pengelompokan pasien berdasarkan tingkat risiko atau karakteristik klinis mereka.
+		\item Variabel moderator: Jenis kelamin pasien dan riwayat penyakit tertentu (seperti hipertensi atau diabetes). Variabel ini dapat memengaruhi hubungan antara karakteristik klinis (variabel independen) dan hasil \textit{clustering} (variabel dependen.)
+		\item Variabel kontrol: durasi pengamatan (time) dan unit pengukuran data klinis dan laboratorium.
+	\end{enumerate}
+	\section{Instrumen Penelitian}
+	Instrumen penelitian adalah alat yang digunakan untuk mengumpulkan, mengolah, dan menganalisis data pada penelitian ini. Dalam konteks penerapan algoritma K-Means \textit{clustering} pada dataset Heart Failure Clinical Record, instrumen yang digunakan meliputi:
+	\begin{enumerate}
+		\item Dokumentasi Dataset Penelitian\\
+		Dataset yang digunakan adalah Heart Failure Clinical Record, yang berisi data pasien dengan variabel-variabel klinis dan laboratorium seperti:
+		\begin{itemize}
+			\item Usia \\
+			Usia adalah salah satu faktor paling penting dalam menganalisis risiko gagal jantung. Secara alami, seiring bertambahnya usia, tubuh manusia mengalami penurunan dalam fungsi organ-organ vital, termasuk jantung. Pada usia yang lebih tua, dinding jantung cenderung menjadi lebih kaku, dan kemampuan untuk memompa darah dengan efisien juga menurun. Hal ini memicu peningkatan tekanan darah, penurunan fungsi sirkulasi darah, dan ketidakseimbangan cairan, yang semuanya menjadi faktor yang memperburuk kondisi gagal jantung. Penurunan kapasitas jantung untuk memompa darah dengan baik pada usia tua meningkatkan kemungkinan terjadinya gagal jantung pada individu tersebut.
+			
+			
+			\item Kadar Natrium Serum \\
+			Natrium merupakan elektrolit yang sangat penting dalam menjaga keseimbangan cairan dan volume darah dalam tubuh. Kadar natrium serum yang rendah (hiponatremia) sering menjadi indikator utama dalam pasien dengan gagal jantung. Hiponatremia sering terjadi pada pasien gagal jantung karena akumulasi cairan yang berlebihan dalam tubuh yang tidak bisa dikeluarkan dengan efektif oleh ginjal. Ketidakseimbangan ini dapat memengaruhi fungsi jantung dan menyebabkan gejala-gejala seperti sesak napas dan pembengkakan (edema). Oleh karena itu, kadar natrium serum yang rendah seringkali menunjukkan prognosis yang lebih buruk pada pasien gagal jantung, karena meningkatkan beban pada jantung dan menurunkan kapasitasnya untuk memompa darah.
+			
+			\item Fraksi Ejeksi \\
+			Fraksi ejeksi (ejection fraction) adalah persentase darah yang dipompa keluar dari ventrikel kiri jantung pada setiap detak jantung. Nilai normal fraksi ejeksi adalah sekitar 55 persen -70 persen . Sebaliknya, jika fraksi ejeksi berada di bawah nilai tersebut, maka kondisi jantung dikategorikan dalam risiko gagal jantung. Fraksi ejeksi yang rendah menunjukkan bahwa jantung tidak memompa darah dengan baik, yang merupakan ciri utama dari gagal jantung. Dengan kata lain, semakin rendah fraksi ejeksi, semakin besar kemungkinan pasien tersebut mengalami penurunan fungsi jantung dan lebih rentan terhadap kondisi gagal jantung yang lebih parah. Pemantauan dan pengobatan yang tepat untuk meningkatkan fraksi ejeksi sangat penting dalam mengelola gagal jantung.
+			
+			\item Kadar Kreatinin Serum \\
+			Kreatinin adalah produk limbah yang dihasilkan oleh otot dan disaring oleh ginjal. Kadar kreatinin dalam darah memberikan indikasi yang baik mengenai fungsi ginjal. Kadar kreatinin yang tinggi sering kali menandakan adanya gangguan pada ginjal, yang dapat terjadi bersamaan dengan gagal jantung. Gangguan fungsi ginjal pada pasien gagal jantung sering kali mengarah pada akumulasi cairan yang lebih tinggi dalam tubuh, yang pada gilirannya memperburuk gejala gagal jantung, seperti sesak napas dan pembengkakan. Peningkatan kadar kreatinin dalam darah dapat menunjukkan bahwa tubuh pasien gagal jantung mengalami kesulitan dalam mengeluarkan limbah, yang mengindikasikan penurunan fungsi ginjal akibat kerusakan yang terkait dengan gagal jantung.
+			
+			\item Kadar Enzim Kreatinin Fosfokinase\\
+			Kreatinin fosfokinase (CPK) adalah enzim yang ditemukan dalam berbagai jaringan tubuh, termasuk otot jantung. Ketika otot jantung mengalami kerusakan, seperti yang terjadi pada serangan jantung atau gagal jantung, kadar CPK dalam darah akan meningkat. Peningkatan kadar CPK bisa menunjukkan adanya kerusakan pada jaringan jantung atau bahkan infark miokard (serangan jantung). Oleh karena itu, CPK sering digunakan dalam pengukuran tingkat kerusakan jantung pada pasien gagal jantung dan memberikan wawasan penting mengenai keparahan kondisi jantung pasien.
+			
+			\item Riwayat Hipertensi\\
+			Hipertensi atau tekanan darah tinggi adalah salah satu faktor utama yang dapat menyebabkan dan memperburuk kondisi gagal jantung. Tekanan darah tinggi menyebabkan pembuluh darah menjadi kaku dan sempit, yang meningkatkan beban pada jantung. Jantung harus bekerja lebih keras untuk memompa darah, yang lama kelamaan dapat menyebabkan kerusakan pada otot jantung, meningkatkan risiko gagal jantung. Oleh karena itu, hipertensi yang tidak terkontrol merupakan salah satu faktor risiko utama yang harus diwaspadai dalam pengelolaan pasien gagal jantung.
+			
+			\item Jenis Kelamin\\
+			Jenis kelamin memiliki pengaruh yang signifikan terhadap kesehatan jantung dan risiko gagal jantung. Pria lebih cenderung mengembangkan gagal jantung pada usia yang lebih muda, sedangkan wanita sering mengembangkan kondisi ini setelah menopause, ketika kadar hormon estrogen menurun. Selain itu, wanita cenderung mengalami jenis gagal jantung yang lebih kompleks dan sering kali berhubungan dengan gejala yang lebih parah. Penanganan dan pendekatan pengobatan bisa berbeda antara pria dan wanita, sehingga penting untuk mempertimbangkan jenis kelamin dalam merencanakan perawatan untuk pasien gagal jantung.
+			
+			\item Trombosit\\
+			Trombosit adalah sel darah yang berfungsi dalam proses pembekuan darah. Ketika trombosit berada dalam jumlah yang tidak normal, baik terlalu tinggi maupun rendah, hal ini dapat memengaruhi sirkulasi darah dan pembekuan. Pada pasien gagal jantung, gangguan dalam sirkulasi darah dapat menyebabkan peningkatan jumlah trombosit yang berlebihan, yang meningkatkan risiko pembekuan darah dan stroke. Sebaliknya, jumlah trombosit yang rendah dapat meningkatkan risiko pendarahan.
+			
+			\item Diabetes\\
+			Diabetes mellitus adalah kondisi yang mempengaruhi cara tubuh mengelola gula darah. Pasien dengan diabetes memiliki risiko yang lebih tinggi untuk mengalami kerusakan pembuluh darah dan jantung, yang dapat mengarah pada gagal jantung. Diabetes memperburuk kerja jantung karena meningkatkan resistensi insulin dan menyebabkan penumpukan lemak di pembuluh darah. Pada pasien yang sudah memiliki gagal jantung, diabetes sering kali memperburuk kondisi dan memperpendek harapan hidup mereka.
+			
+			\item Anemia\\
+			Anemia adalah kondisi di mana tubuh kekurangan sel darah merah yang sehat untuk membawa oksigen ke seluruh tubuh. Pada pasien gagal jantung, anemia dapat memperburuk gejala seperti kelelahan, sesak napas, dan penurunan kemampuan fisik. Kekurangan oksigen pada jaringan tubuh dapat memperburuk beban kerja jantung, yang akhirnya memperburuk kondisi gagal jantung. Oleh karena itu, pengelolaan anemia sangat penting pada pasien gagal jantung untuk meningkatkan kualitas hidup mereka.
+			
+			\item Kebiasaan Merokok\\
+			Merokok adalah salah satu faktor yang dapat memperburuk kesehatan jantung. Nikotin dan bahan kimia lain dalam rokok dapat merusak dinding pembuluh darah, meningkatkan tekanan darah, serta mengurangi aliran darah ke organ vital, termasuk jantung. Kebiasaan merokok juga dapat meningkatkan pembentukan plak di arteri (aterosklerosis), yang memperburuk kondisi jantung dan meningkatkan risiko gagal jantung.
+			
+			\item Waktu Penanganan\\
+			Waktu penanganan mengacu pada berapa lama pasien menerima pengobatan sejak didiagnosis dengan gagal jantung. Penanganan yang lebih cepat dapat mengurangi beban pada jantung, mencegah komplikasi lebih lanjut, dan memperpanjang harapan hidup pasien. Keterlambatan dalam penanganan dapat memperburuk gejala dan meningkatkan risiko kematian.
+			
+		\end{itemize}
+		\item Software dan Alat Analisis
+		\begin{itemize}
+			\item Google Colab: Digunakan sebagai platform untuk analisis data berbasis Python. Platform ini dipilih karena kemudahan akses, kemampuan untuk berbagi kode, dan integrasi dengan pustaka Python yang relevan untuk \textit{machine learning}.
+			\item Pustaka python: 
+			\begin{itemize}
+				\item Pandas untuk pengelolaan dan manipulasi data.
+				\item NumPy untuk komputasi numerik.
+				\item Scikit-learn untuk implementasi algoritma K-Means dan evaluasi hasil \textit{clustering}.
+			\end{itemize}
+		\end{itemize}
+	\end{enumerate}
+	\section{Teknik Pengumpulan Data}
+	
+	Penelitian ini menggunakan teknik pengumpulan data berbasis \textbf{studi literatur} sebagai pendekatan utama. Pendekatan ini bertujuan untuk mengumpulkan informasi dari berbagai penelitian terdahulu yang relevan, termasuk kajian tentang algoritma K-Means, teknik \textit{clustering}, serta aplikasi pembelajaran mesin dalam analisis dan pengelolaan pasien gagal jantung. Dengan memanfaatkan studi literatur, penelitian ini dapat memperoleh wawasan yang telah teruji, serta membangun fondasi yang lebih komprehensif dalam melakukan analisis terhadap masalah yang dihadapi.
+	
+	Agar data yang digunakan dalam penelitian ini relevan dan berkualitas, diterapkan kriteria inklusi dan eksklusi yang dirancang dengan cermat untuk menyaring informasi dari dataset. Kriteria inklusi mencakup data pasien yang telah didiagnosis dengan gagal jantung dan tercatat dalam dataset Heart Failure Clinical Record. Variabel penting yang harus tersedia dalam dataset meliputi usia, kadar natrium serum, fraksi ejeksi, dan kadar kreatinin serum. Penerapan kriteria inklusi ini bertujuan untuk memastikan bahwa dataset yang digunakan memenuhi syarat untuk mendukung analisis yang valid. Dalam penelitian ini, seluruh data dalam dataset telah memenuhi kriteria inklusi, sehingga tidak ada kasus anomali seperti usia pasien yang bernilai negatif atau data yang tidak relevan dengan penelitian.
+	
+	Sebaliknya, kriteria eksklusi diterapkan untuk menghindari penggunaan data yang dapat mengurangi keakuratan hasil analisis klastering. Misalnya, data dengan nilai biner seperti anemia, diabetes, hipertensi, jenis kelamin, dan kebiasaan merokok dikeluarkan dari analisis karena tidak berkontribusi secara signifikan terhadap proses klastering berbasis algoritma K-Means. Selain itu, variabel seperti tekanan darah dapat memengaruhi hasil klastering karena cenderung menghasilkan interpretasi yang kurang stabil dan dapat menambah variabilitas yang tidak diinginkan dalam pengelompokan data. Dengan menerapkan kriteria eksklusi ini, hanya data yang relevan dan mendukung analisis klastering yang akan disertakan, sehingga algoritma K-Means dapat bekerja secara optimal dan menghasilkan klaster yang lebih akurat.
+	
+	Jika terdapat data yang hilang (missing values), dua pendekatan dapat digunakan untuk mengatasinya, yaitu metode imputasi dan metode eksklusi. Metode imputasi digunakan untuk mengisi nilai yang hilang dalam dataset dengan cara memperkirakan nilai tersebut berdasarkan pola atau hubungan dengan variabel lain dalam dataset. Teknik imputasi seperti pengisian dengan nilai rata-rata, median, atau menggunakan model prediktif dapat memastikan bahwa dataset tetap utuh tanpa kehilangan informasi penting. Di sisi lain, metode eksklusi diterapkan untuk menghapus data yang tidak lengkap atau bermasalah, terutama jika data yang hilang terlalu signifikan atau tidak dapat diimputasi dengan akurat. Dalam penelitian ini, metode eksklusi lebih diutamakan apabila nilai yang hilang pada variabel penting cukup besar, karena penghapusan data tersebut dapat memastikan bahwa hanya data yang relevan dan lengkap yang digunakan dalam analisis.
+	
+	Dengan pengelolaan data yang sistematis, penerapan kriteria inklusi dan eksklusi yang ketat, serta penggunaan metode imputasi atau eksklusi yang sesuai, penelitian ini diharapkan dapat menghasilkan analisis yang valid, relevan, dan mendalam. Hal ini akan mendukung pengambilan keputusan berbasis data dalam penanganan dan pengelolaan kasus gagal jantung secara lebih efektif.
+	
+	
+	\section{Teknik Analisis Data}
+	Penelitian ini menggunakan pendekatan kuantitatif untuk menganalisis data dalam dataset Heart Failure Clinical Record. Berikut adalah tahapan dan teknik yang diterapkan:
+	\begin{enumerate}
+		\item \textbf{\textit{Preprocessing} Data}
+		\begin{itemize}
+			\item Pembersihan Data. Data diperiksa untuk mendeteksi missing values, duplikasi, dan anomali:
+			\begin{itemize}
+				\item Missing Values. Pada missing values dapat ditangani dengan metode imputasi (dengan mengisi nilai  hilang dengan rata-rata, median, atau lainnya) atau eksklusi (menghapus data tidak lengkap jika signifikan memengaruhi analisis)
+				\item Duplikasi. Data  ganda yang dihapus menggunakan fungsi seperti ".duplicated()" untuk menghindari bias.
+				\item Anomali. Nilai yang menyimpang jauh dari pola (outliers) ditangani menggunakan teknik seperti boxplot atau z-score.
+			\end{itemize}
+			\item Standarisasi Data. Variabel dalam dataset distandarisasi menggunakan StandardScaler dari pustaka scikit-learn untuk memastikan semua variabel memiliki rata-rata 0 dan standar deviasi 1. Manfaatnya untuk meningkatkan kinerja algoritma berbasis jarak, seperti K-Means,  dengan memastikan semua variabel memiliki skala yang sama sehingga analisis lebih akurat dan stabil. 
+		\end{itemize}
+		\item \textbf{Reduksi Dimensi dengan PCA (\textit{Principal Component Analysis})}\\
+		PCA digunakan untuk mengurangi dimensi data dengan memfokuskan analisis pada komponen utama yang menjelaskan variabilitas terbesar dalam dataset. Dengan menyederhanakan data yang penting, analisis dapat lebih efisien. Hasil transformasi PCA digunakan sebagai input untuk algoritma K-Means, memungkinkan proses klastering menjadi lebih optimal. 
+		
+		\item \textbf{Menentukan Jumlah Klaster Optimal dengan Metode Elbow}\\
+		Untuk menentukan jumlah klaster optimal, digunakan \textbf{metode ellbow}, yang menghitung nilai inertia (jumlah kuadrat jarak dalam klaster) untuk berbagai nilai k menggunakan perhitungan \textbf{WCSS} (Within-Custom Sum Of Squares). Dari grafik tersebut, terdapat \textbf{Elbow Point}, yaitu titik di mana penurunan WCSS mulai melambat, membentuk sudut seperti "siku", yang menunjukkan jumlah klaster yang ideal untuk analisis.
+		
+		\item \textbf{\textit{Clustering} dengan Algoritma K-Means}\\
+		Setelah nilai k optimal ditentukan, algoritma K-Means diterapkan pada data yang telah direduksi dimensinya dengan PCA.
+		
+		\item \textbf{Visualisasi Hasil \textit{Clustering}}\\
+		Hasil klaster divisualisasikan dalam dua dimensi untuk mempermudah interpretasi pola-pola yang muncul.
+	\end{enumerate}
+	
+	
+	\section{Algoritma Penelitian}
+	\begin{center}
+		\tikzstyle{startstop} = [rectangle, rounded corners=0.5cm, minimum width=2.5cm, minimum height=1cm, text centered, draw=black]
+		\tikzstyle{process} = [rectangle, minimum width=2cm, minimum height=1cm, text centered, draw=black]
+		\tikzstyle{decision} = [diamond, minimum width=3cm, minimum height=1cm, text centered, draw=black]
+		\tikzstyle{parallelogram} = [trapezium, trapezium left angle=70, trapezium right angle=110, minimum width=3cm, minimum height=1cm, text centered, draw=black]
+		\tikzstyle{arrow} = [ultra thick,->,>=stealth]
+		
+		\begin{tikzpicture}[node distance=2cm]
+			% Start Node
+			\node (start) [startstop] {Mulai};
+			
+			% Process Nodes
+			\node (in) [process, below of=start] {Instalasi dan impor paket};
+			\node (pro2) [process, below of=in] {Ambil dataset};
+			\node (pro3) [process, below of=pro2] {Pisahkan data};
+			\node (pro4) [process, below of=pro3] {PCA pada fitur biner};
+			\node (pro5) [process, below of=pro4] {Standarisasi data};
+			\node (decision1) [parallelogram, below of=pro5] {Menentukan jumlah klaster optimal};
+			\node (pro7) [process, below of=decision1] {Latih model K-Means};
+			\node (pro8) [process, below of=pro7] {Visualisasi hasil \textit{clustering}};
+			\node (decision2) [parallelogram, below of=pro8] {Evaluasi model};
+			
+			% End Node
+			\node (stop) [startstop, below of=decision2] {Selesai};
+			
+			% Arrows
+			\draw [arrow] (start) -- (in);
+			\draw [arrow] (in) -- (pro2);
+			\draw [arrow] (pro2) -- (pro3);
+			\draw [arrow] (pro3) -- (pro4);
+			\draw [arrow] (pro4) -- (pro5);
+			\draw [arrow] (pro5) -- (decision1);
+			\draw [arrow] (decision1) -- (pro7);
+			\draw [arrow] (pro7) -- (pro8);
+			\draw [arrow] (pro8) -- (decision2);
+			\draw [arrow] (decision2) -- (stop);
+		\end{tikzpicture}
+		\captionof{figure}{Alur Proses K-Means \textit{Clustering}}
+	\end{center}
+	
+	
+	
+	\chapter{Hasil dan Pembahasan}
+	\section{\textit{Pre-Processing} Data}
+	\subsection{Pengecekan \textit{Missing Value}}
+	Pengecekan terhadap data kosong (\textit{missing values}) merupakan langkah krusial dalam memastikan kualitas dan keakuratan data yang digunakan dalam analisis. Dalam konteks analisis data, khususnya pada metode \textit{clustering}, data yang lengkap dan konsisten sangat penting untuk menghasilkan pembagian kelompok atau klaster yang akurat. Oleh karena itu, pengecekan terhadap data kosong dilakukan untuk memastikan bahwa data yang diunduh atau dikumpulkan benar-benar lengkap dan tidak ada informasi yang hilang. Data kosong sering kali menjadi indikator adanya masalah dalam tahapan pengumpulan, penyimpanan, atau pengunduhan data, yang jika tidak ditangani dengan benar, dapat menyebabkan hasil analisis yang bias dan tidak akurat.\\
+	
+	Pengecekan terhadap \textit{missing value} sangat penting dalam tahapan \textit{pre-processing} data. Tahapan ini bertujuan untuk memastikan bahwa dataset yang digunakan dalam analisis \textit{clustering} benar-benar siap, tanpa adanya informasi yang hilang yang dapat mengganggu proses analisis. Pengecekan ini memungkinkan identifikasi variabel yang memiliki data yang tidak lengkap, yang jika dibiarkan tanpa penanganan yang tepat, dapat mempengaruhi keakuratan hasil analisis \textit{clustering} yang dilakukan. Data yang tidak lengkap dapat menyebabkan algoritma \textit{clustering}, seperti \textit{K-means}, menghasilkan cluster yang tidak representatif atau bahkan menyesatkan.\\
+	
+	Pengecekan terhadap \textit{missing value} pada dataset dilakukan dengan menggunakan teknik eksplorasi data yang umum, yaitu dengan memeriksa jumlah dan persentase nilai yang hilang di setiap variabel dalam dataset. Langkah ini bertujuan untuk mengidentifikasi variabel-variabel yang mengandung data yang hilang, serta untuk mengetahui seberapa besar proporsi \textit{missing }value pada setiap fitur dalam dataset.\\
+	
+	Berikut pengecekan data kosong dengan menggunakan bantuan \textit{platform} google colab berbasis python:\\
+	\begin{figure}[H]
+		\centering
+		\includegraphics[width=0.5\linewidth]{gambar2.png}
+		\caption{Pengecekan data kosong}
+		\label{fig:enter-label}
+	\end{figure}\\
+	
+	Dari gambar di atas, dapat dilihat bahwa seluruh data dalam dataset telah terisi secara lengkap. Jadi dapat disimpulkan bahwa semua variabel dalam dataset tidak mengandung \textit{missing value}. Hal ini menunjukkan bahwa tidak ada nilai yang hilang pada setiap variabel, yang berarti kita tidak perlu khawatir tentang potensi bias yang sering timbul akibat adanya data yang tidak lengkap. Dengan kondisi ini, analisis statistik yang dilakukan akan lebih akurat dan valid, karena tidak ada langkah tambahan yang diperlukan untuk menangani \textit{missing value}, seperti imputasi atau penghapusan baris data. Oleh karena itu, kita dapat melanjutkan proses analisis lebih lanjut tanpa khawatir mengenai kualitas data yang hilang, sehingga hasil analisis yang diperoleh dapat lebih diandalkan dan representatif.
+	
+	
+	\subsection{Reduksi Data}
+	Proses reduksi data bertujuan untuk mengurangi jumlah fitur dalam dataset, sambil mempertahankan informasi yang penting dan relevan. Salah satu teknik reduksi data yang umum digunakan adalah \textit{Principal Component Analysis} (PCA). Meskipun PCA umumnya diterapkan pada data numerik, ada beberapa situasi di mana PCA juga digunakan pada data biner, yaitu data yang hanya memiliki dua nilai, seperti 0 dan 1, yang sering ditemukan dalam pengolahan data kategorikal atau dalam data hasil pengkodean biner.\\
+	
+	Peleburan data dengan PCA pada data biner berfungsi untuk mengurangi dimensi fitur biner tanpa mengorbankan informasi penting yang terkandung dalam data tersebut. Dalam konteks ini, PCA bertujuan untuk mengubah data biner menjadi kombinasi linier dari fitur-fitur biner yang ada, yang disebut sebagai komponen utama, yang dapat mewakili sebagian besar variansi dalam data.\\
+	
+	PCA pada dasarnya adalah teknik yang digunakan untuk menemukan arah utama variansi dalam dataset dan mengubah data ke dalam koordinat baru yang disebut komponen utama. Dalam hal data numerik, variansi dihitung menggunakan matriks kovarians, dan komponen utama adalah kombinasi linier dari fitur-fitur asli yang memiliki variansi terbesar. Namun, pada data biner, penggunaan PCA lebih kompleks karena data tersebut hanya berisi dua nilai (0 atau 1). Variansi dalam data biner tidak dapat dihitung dengan cara yang sama seperti pada data kontinu.\\
+	
+	Berikut PCA dengan menggunakan bantuan platform google colab berbasis python:\\
+	
+	%\begin{figure}[h!]
+		%\centering
+		%\includegraphics[width=0.7\linewidth]{gambar3.png}
+		%\caption{Program PCA}
+		%\label{fig:enter-label}
+	%\end{figure}
+	%\begin{figure}[h!]
+		%\centering
+		%\includegraphics[width=0.7\linewidth]{gambar4.png}
+		%\caption{Hasil Running Program PCA}
+		%\label{fig:enter-label}
+	%\end{figure}
+	%\begin{figure}[H]
+		%\centering
+		%\includegraphics[width=0.5\linewidth]{gambar5.png}
+		%\caption{Hasil Running Program PCA}
+		%\label{fig:enter-label}
+	%\end{figure}
+	
+	Dari gambar di atas, dapat kita lihat bahwa peleburan data atau reduksi dimensi menggunakan PCA pada data biner adalah teknik yang sangat efektif untuk mengurangi kompleksitas dan redundansi dalam dataset. Meskipun PCA pada data biner membutuhkan modifikasi tertentu, seperti penggunaan matriks korelasi, teknik ini dapat mengurangi jumlah fitur yang digunakan tanpa mengorbankan informasi penting yang terkandung dalam data. Penerapan PCA pada dataset biner, seperti dataset \textit{Heart Failure Clinical Records}, dapat membantu meningkatkan efisiensi komputasi dan menghasilkan analisis \textit{clustering} yang lebih akurat dan mudah diinterpretasikan. Penggunaan PCA pada data biner memungkinkan analisis \textit{clustering} berjalan lebih cepat, lebih efisien, dan lebih dapat diandalkan, sekaligus mengurangi risiko \textit{overfitting}. Namun, pemilihan jumlah komponen utama yang tepat harus dilakukan dengan hati-hati untuk menjaga keseimbangan antara kompleksitas dan informasi yang dihasilkan.\\
+	
+	\subsection{Standarisasi Data}
+	Standarisasi data adalah salah satu langkah penting dalam proses \textit{pre-processing} data yang bertujuan untuk memastikan data berada dalam skala yang seragam sebelum diterapkan dalam analisis lebih lanjut. Proses ini sangat krusial, terutama ketika dataset yang digunakan memiliki fitur dengan unit yang berbeda atau rentang nilai yang berbeda. Tanpa standarisasi, algoritma analisis data, seperti \textit{clustering}, regresi, dan klasifikasi, dapat terpengaruh oleh perbedaan skala antar fitur, yang berpotensi menghasilkan model yang tidak optimal.\\
+	
+	Standarisasi data merujuk pada teknik untuk mengubah fitur-fitur dalam dataset sehingga memiliki distribusi dengan rata-rata (\textit{mean}) 0 dan deviasi standar (\textit{standard deviation}). Tujuan utama dari standarisasi adalah untuk menyeimbangkan kontribusi tiap fitur dalam model, menghindari dominasi fitur dengan rentang nilai yang lebih besar, dan meningkatkan performa algoritma analisis data yang sensitif terhadap skala data.\\
+	
+	Sebelum melakukan standarisasi kita perlu menggabungkan data \textit{non biner} dengan data yang sudah di PCA. Berikut kode penggabungan data \textit{non-biner} dengan data yang sudah di PCA dengan menggunakan bantuan\textit{ platform} google colab berbasis python:
+	%\begin{figure}[H]
+		%\centering
+		%\includegraphics[width=0.7\linewidth]{gambar6.png}
+		%\caption{Penggabungan data \textit{non-biner }dan data yang sudah di PCA}
+		%\label{fig:enter-label}
+	%\end{figure}\\
+	
+	Setelah data digabungkan kita dapat melakukan standarisasi data dengan menggunakan bantuan \textit{platform} google colab berbasis python:\\
+	%\begin{figure}[H]
+		%\centering
+		%\includegraphics[width=0.7\linewidth]{gambar7.png}
+		%\caption{Program Standarisasi Data}
+		%\label{fig:enter-label}
+	%\end{figure}\\
+	%\begin{figure}[H]
+		%\centering
+		%\includegraphics[width=0.7\linewidth]{gambar8.png}
+		%\caption{Hasil running Program Standarisasi Data}
+		%\label{fig:enter-label}
+	%\end{figure}
+	Dari gambar di atas, dapat kita lihat bahwa standarisasi data memastikan bahwa setiap fitur, baik itu memiliki rentang nilai yang besar atau kecil, memiliki kontribusi yang setara dalam model analisis, dan dengan demikian, menghasilkan model yang lebih akurat dan mudah diinterpretasikan. Standarisasi data merupakan langkah krusial dalam mempersiapkan dataset untuk analisis lebih lanjut, terutama ketika menggunakan algoritma yang sensitif terhadap skala fitur. Proses ini mengubah data sehingga setiap fitur memiliki rata-rata 0 dan deviasi standar 1, yang memungkinkan analisis yang lebih adil dan efisien. Penerapan standarisasi sangat membantu dalam menghindari bias akibat perbedaan skala antar fitur dan meningkatkan performa algoritma analisis data seperti \textit{clustering}.
+	
+	\section{Penerapan K-Means Clustering}
+	Data mentah Heart Failure Clinical Record yang berasal dari UCIMLREPO setelah dilakukan pre-processing data, menghasilkan sebuah dataset yang bersih dan siap untuk dilanjutkan ke proses selanjutnya yaitu pembuatan Model menggunakan metode Clustering. Terdapat banyak algoritma yang dapat digunakan untuk metode Clustering tersebut, salah satunya dengan menggunakan algoritma K-Means Clustering untuk membuat model Clustering. Pada penelitian ini dalam membuat model Clustering dan menghitung algoritma K-Means, digunakan program komputer dengan bahasa pemograman python yang cocok untuk menghitung data-data dan membuat model seperti Clustering.
+	
+	\subsection{Penerapan Algoritma Menggunakan Cara Manual}
+	Sebelum menggunakan pemograman untuk melakukan perhitungan K-Means Clustering, tentunya perlu paham terlebih dahulu tentang proses perhitungan K-Means Clustering secara manual. Untuk mempermudah memahami proses perhitungan K-Means Clustering secara manual, maka digunakan 10 data pertama dari dataset yang sudah bersih.\\
+	
+	
+	
+	\begin{table}[ht]
+		\resizebox{\textwidth}{!}{%
+			\begin{tabular}{|c|c|c|c|c|c|c|c|c|}
+				\hline
+				\textbf{Pasien} & \textbf{Age} & \textbf{Creatinine\_Phosphokinase} & \textbf{Ejection\_Fraction} & \textbf{Platelets} & \textbf{Serum\_Creatinine} & \textbf{Serum\_Sodium} & \textbf{Time} & \textbf{PCA} \\ \hline
+				1 & 1.192945231 & 0.000165728 & -1.530559528 & 0.016816484 & 0.490056987 & -1.504036122 & -1.629502414 & 0.299377408 \\ \hline
+				2 & -0.491279276 & 7.514639529 & -0.00707675 & 7.54E-09 & -0.284552352 & -0.141976151 & -1.603690737 & 0.603108844 \\ \hline
+				3 & 0.350832977 & -0.449938761 & -1.530559528 & -1.038073134 & -0.090900017 & -1.731046117 & -1.590784898 & 1.602935854 \\ \hline
+				4 & -0.912335403 & -0.486071002 & -1.530559528 & -0.546474088 & 0.490056987 & 0.085033844 & -1.590784898 & 0.16807943 \\ \hline
+				5 & 0.350832977 & -0.435485864 & -1.530559528 & 0.651798584 & 1.264666327 & -4.682176055 & -1.57787906 & -1.508226664 \\ \hline
+				6 & 2.45611361 & -0.552141386 & 0.162199114 & -0.607923969 & 0.683709322 & -1.050016132 & -1.57787906 & 0.864175003 \\ \hline
+				7 & 1.192945231 & -0.346703786 & -1.953749189 & -1.396530771 & -0.187726185 & 0.085033844 & -1.552067382 & 0.16807943 \\ \hline
+				8 & -0.070223149 & -0.275471654 & 1.854957756 & 1.952487725 & -0.284552352 & -1.277026127 & -1.552067382 & 0.553396328 \\ \hline
+				9 & 0.350832977 & -0.438582914 & 2.278147417 & 7.54E-09 & 0.102752318 & 0.31204384 & -1.552067382 & -0.458687138 \\ \hline
+				10 & 1.614001357 & -0.473682805 & -0.260990546 & 1.276539038 & 7.752019547 & -0.823006137 & -1.552067382 & 0.864175003 \\ \hline
+			\end{tabular}%
+		}
+		\caption{10 Data Pasien}
+		\label{tab:10 data pasien}
+	\end{table}
+	
+	Untuk melakukan perhitungan menggunakan algoritma K-Means Clustering dengan data yang sudah bersih perlu dilakukan beberapa langkah, yaitu:
+	
+	\begin{enumerate}
+		\item  Menentukan Jumlah Cluster (K)\\
+		Jumlah Cluster merupakan tahap awal dan juga penentu dalam pengelompokan hasil Kalsterisasi. Dalam menentukan jumlah kluster yang sesuai, dapat memperhatikan beberapa aspek yang penting, salah satunya seperti kegunaan cluster dalam penelitian. Oleh karean itu, jumlah Cluster yang dipilih yaitu sebanyak 2, hal ini karena sesuai dengan kebutuhan Cluster untuk penelitian yaitu pengelompokan pasien gagal jantung yang memiliki risiko tinggi untuk meninggal atau tidak.
+		
+		\item Menentukan Titik Pusat Cluster\\
+		Setelah menentukan jumlah kluster yang dibutuhkan, langkah selanjutnya yaitu menentukan titik pusat untuk masing-masing cluster atau yang disebut dengan titik Centroid. Dalam menentukan titik centroid peneliti dapat memilih secara acak posisi centroid namun dengan syarat centroid tersebut masih berada pada range nilai dari setiap atribute atau fitur yang dimiliki oleh data.\\
+		Dalam proses ini peneliti memilih titik centroid secara acak dengan mengambil salah satu nilai dari data untuk masing-masing centroid, yaitu peneliti data nomor urut ke-1 dan ke-8.
+		\begin{table}[ht]
+			\resizebox{\textwidth}{!}{%
+				\begin{tabular}{|c|c|c|c|c|c|c|c|c|}
+					\hline
+					\textbf{Cluster} & \textbf{Age} & \textbf{Creatinine\_Phosphokinase} & \textbf{Ejection\_Fraction} & \textbf{Platelets} & \textbf{Serum\_Creatinine} & \textbf{Serum\_Sodium} & \textbf{Time} & \textbf{PCA} \\ \hline
+					Centroid 1 & 1.192945231 & 0.000165728 & -1.530559528 & 0.016816484 & 0.490056987 & -1.504036122 & -1.629502414 & 0.299377408 \\ \hline
+					Centroid 2 & -0.070223149 & -0.275471654 & 1.854957756 & 1.952487725 & -0.284552352 & -1.277026127 & -1.552067382 & 0.553396328 \\ \hline
+				\end{tabular}%
+			}
+			\caption{Data Centroid}
+			\label{tab:Data Centroid}
+		\end{table}
+		
+		\item Menghitung Jarak Data ke Setiap Centroid\\
+		Setelah memperoleh titik tengah dari setiap cluster, dilanjutkan dengan menghitung jarak dari data ke setiap titik tengah cluster atau titik centroid. Untuk menghitung jarak data ke titik centroid rumus untuk menghitungnya, yaitu rumus Euclidean Distance.\\
+		\[
+		d(\mathbf{p}, \mathbf{q}) = \sqrt{\sum_{i=1}^n (q_i - p_i)^2}
+		\]
+		\textbf{Keterangan:}
+		\begin{itemize}
+			\item \( d(\mathbf{p}, \mathbf{q}) \) : jarak antara titik \( \mathbf{p} \) and titik \( \mathbf{q} \).
+			\item \( \mathbf{p} = (p_1, p_2, \dots, p_n) \) : titik centroid pada fitur ke-\( n \)-dimensi.
+			\item \( \mathbf{q} = (q_1, q_2, \dots, q_n) \) : titik data pada fitur ke-\( n \)-dimensi.
+			\item \( n \) : banyaknya fitur pada data
+		\end{itemize}
+		karena pada dataset terdapat 8 fitur sehingga dimensi \( n \) = 8, maka rumusnya yaitu:\\
+		\[
+		d(\mathbf{p}, \mathbf{q}) = \sqrt{
+			\begin{array}{l}
+				(p_1 - q_1)^2 + (p_2 - q_2)^2 + (p_3 - q_3)^2 + (p_4 - q_4)^2 \\
+				+ (p_5 - q_5)^2 + (p_6 - q_6)^2 + (p_7 - q_7)^2 + (p_8 - q_8)^2
+			\end{array}
+		}
+		\]
+		Dengan contoh, perhitungan jarak data pasien 2 ke centroid 1 yaitu:\\
+		\begin{itemize}
+			\item Data pasen 2 = \( (\begin{array}{l}
+				-0.491279276, 7.514639529, -0.00707675, 7.54E-09, \\
+				-0.284552352, -0.141976151, -1.603690737, 0.603108844
+			\end{array} ) \)
+			\item titik centroid 1 = \( (\begin{array}{l}
+				1.192945231, 0.000165728, -1.530559528, 0.016816484, \\
+				0.490056987, -1.504036122, -1.629502414, 0.299377408
+			\end{array} ) \)
+		\end{itemize}
+		Maka nilai jaraknya ialah:\\
+		\[
+		d = \sqrt{
+			\begin{array}{l}
+				(1.192945231 - -0.491279276)^2 + (0.000165728 - 7.514639529)^2 \\
+				+ (-1.530559528 - -0.00707675)^2 + (0.016816484 - 7.54E-09)^2 \\
+				+ (0.490056987 - -0.284552352)^2 + (-1.504036122 - -0.141976151)^2\\
+				+ (-1.629502414 - -1.603690737)^2 + (0.299377408 - 0.603108844)^2
+			\end{array}
+		}
+		\]
+		\[
+		d = \sqrt{
+			\begin{array}{l}
+				(0.701665955)^2 + (7.514805257)^2 \\
+				+ (-1.537636278)^2 + (0.016816492)^2 \\
+				+ (0.205504635)^2 + (-1.646012273)^2\\
+				+ (-3.233193151)^2 + (0.902486252)^2
+			\end{array}
+		}
+		\]
+		\[
+		d = \sqrt{
+			\begin{array}{l}
+				0.492335112 + 56.47229805 
+				+ 2.364325323 + 0.000282794 \\
+				+ 0.042232155 + 2.709356403
+				+ 10.45353795 + 0.814481435
+			\end{array}
+		}
+		\]
+		\[
+		d = \sqrt{
+			73.34884923
+		}
+		\]
+		\[
+		d = 8.010827503
+		\]
+		
+		Diperoleh jarak dari data pasien 2 ke centroid 1 sebesar 8.010827503, dengan menggunakan rumus dan cara yang sama, maka diperoleh nilai jarak dari data ke titik-titik centroidnya, yaitu:
+		\begin{table}[h]
+			\centering
+			\resizebox{0.5\textwidth}{!}{%
+				\begin{tabular}{|c|c|c|c|c|c|c|c|c|}
+					\hline
+					\textbf{Pasien} & \textbf{Centroid 1} & \textbf{Centroid 2} \\ \hline
+					1 & 0 & 4.195497076 \\ \hline
+					2 & 8.010827503 & 8.332825214 \\ \hline
+					3 & 2.02838543 & 4.686104588 \\ \hline
+					4 & 2.744050024 & 4.589688193 \\ \hline
+					5 & 3.908047868 & 5.621609421 \\ \hline
+					6 & 2.39200055 & 4.119026251 \\ \hline
+					7 & 2.303199328 & 5.416261961 \\ \hline
+					8 & 4.195497076 & 0 \\ \hline
+					9 & 4.408740657 & 2.809742431 \\ \hline
+					10 & 7.558136118 & 8.526385466 \\ \hline
+				\end{tabular}%
+			}
+			\caption{Jarak Data ke Centroid}
+			\label{tab:Jarak Data ke Centroid}
+		\end{table}
+		
+		\item Menempatkan Data ke Dalam klaster\\
+		Setelah mendapatkan nilai jarak dari data ke titik-titik centroid, maka tahap selanjutnya yaitu mengelompokkan data ke dalam cluster yang sudah ada. Proses mengelompokkan data dapat dengan melihat jarak data ke titik centroid terkecil. Sebagai contoh pada pasien 1, 2 dan 3 dapat di kelompokkan ke kluster 1 karena jarak terkecilnya yaitu jarak dari titik data ke titk centroid 1, sedangkan pada pasien 8 dan 9 dapat dikelompokkan ke kluster 2 karena jarak terkecilnya yaitu dari titik data ke titik centroid 2. Dengan menggunakan cara yang sama, diperoleh hasil pengelompokan data ke kluster pada tabel berikut.
+		\begin{table}[h]
+			\centering
+			\resizebox{0.6\textwidth}{!}{%
+				\begin{tabular}{|c|c|c|c|c|c|c|c|c|}
+					\hline
+					\textbf{Pasien} & \textbf{Centroid 1} & \textbf{Centroid 2} & \textbf{Cluster} \\ \hline
+					1 & 0 & 4.195497076 & klsuter 1 \\ \hline
+					2 & 8.010827503 & 8.332825214 & klsuter 1 \\ \hline
+					3 & 2.02838543 & 4.686104588 & klsuter 1 \\ \hline
+					4 & 2.744050024 & 4.589688193 & klsuter 1 \\ \hline
+					5 & 3.908047868 & 5.621609421 & klsuter 1 \\ \hline
+					6 & 2.39200055 & 4.119026251 & klsuter 1 \\ \hline
+					7 & 2.303199328 & 5.416261961 & klsuter 1 \\ \hline
+					8 & 4.195497076 & 0 & klsuter 2 \\ \hline
+					9 & 4.408740657 & 2.809742431 & klsuter 2 \\ \hline
+					10 & 7.558136118 & 8.526385466 & klsuter 1 \\ \hline
+				\end{tabular}%
+			}
+			\caption{Pengelompokan Data}
+			\label{tab:Pengelompokan Data}
+		\end{table}
+		
+		\newpage
+		\item Menentukan Titik Centroid Baru\\
+		Setelah terbentuknya cluster data dari proses sebelumnya, maka untuk selanjutnya mencari titik centroid baru dari kluster yang telah terbentuk dari data. Proses untuk menentukan titik centroid baru yaitu dengan menghitung rata-rata tiap fitur pada tiap kluster dengan data nilai awal. Rumus untuk mencari titik centroid baru dapat ditulis sebagai berikut.
+		\[
+		\mu_n = \frac{1}{k} \sum_{i=1}^k x_i
+		\]
+		Keterangan:
+		\begin{itemize}
+			\item \( n \) : banyaknya dimensi atau fitur pada data.
+			\item \( k \) : banyaknya data yang berada pada kluster
+			\item \( \sum_{i=1}^k x_i \) : penjumlahan data ke i pada kluster denga fitur n sampai data ke k 
+			\item \( \mu_n \) : nilai rata-rata pada fitur n
+		\end{itemize}
+		
+		Dalam menentukan titik centroid baru pada kluster, dilakukan perhitungan menggunakan rumus rata-rata denga nilai \( n \) = 8, nilai \(k\) untuk kluster 1 = 8 dan nilai \(k\) untuk kluster 2 = 2. Proses dalam menentukan titik centroid pada Cluster 2, sebagai berikut.\\
+		
+		\textbf{Cluster 2}    
+		\[
+		\mu_1 = \frac{1}{2} \sum_{i=1}^2 x_i = \frac{1}{2} \times(-0.070223149 + 0.350832977) = 0.140304914
+		\]
+		\[
+		\mu_2 = \frac{1}{2} \sum_{i=1}^2 x_i = \frac{1}{2} \times(-0.275471654 + (-0.438582914)) = -0.357027284
+		\]
+		\[
+		\mu_3 = \frac{1}{2} \sum_{i=1}^2 x_i = \frac{1}{2} \times(1.854957756 + 2.278147417) = 2.066552587
+		\]
+		\[
+		\mu_4 = \frac{1}{2} \sum_{i=1}^2 x_i = \frac{1}{2} \times(1.952487725 + 7.54E-09) = 0.976243866
+		\]
+		\[
+		\mu_5 = \frac{1}{2} \sum_{i=1}^2 x_i = \frac{1}{2} \times(-0.284552352 + 0.102752318) = -0.090900017
+		\]
+		\[
+		\mu_6 = \frac{1}{2} \sum_{i=1}^2 x_i = \frac{1}{2} \times(-1.277026127 + 0.31204384) = -0.482491144
+		\]
+		\[
+		\mu_7 = \frac{1}{2} \sum_{i=1}^2 x_i = \frac{1}{2} \times(-1.552067382 + (-1.552067382)) = -1.552067382
+		\]
+		\[
+		\mu_8 = \frac{1}{2} \sum_{i=1}^2 x_i = \frac{1}{2} \times(0.16807943 + 0.553396328) = 0.047354595
+		\]
+		Maka diperoleh titik centroid pada cluster 2 = (0.140304914, -0.357027284, 2.066552587, 0.976243866, -0.090900017, -0.482491144, -1.552067382, 0.047354595). Dengan menggunakan rumus dan cara yang sama, titik centroid pada 2 cluster tersebut yaitu
+		\begin{table}[ht]
+			\resizebox{\textwidth}{!}{%
+				\begin{tabular}{|c|c|c|c|c|c|c|c|c|}
+					\hline
+					\textbf{Cluster} & \textbf{Age} & \textbf{Creatinine\_Phosphokinase} & \textbf{Ejection\_Fraction} & \textbf{Platelets} & \textbf{Serum\_Creatinine} & \textbf{Serum\_Sodium} & \textbf{Time} & \textbf{PCA} \\ \hline
+					Centroid 1 & 0.719257088 & 0.596347707 & -1.022731935 & -0.205480981 & 1.264666327 & -1.220273628 & -1.584331979 & 0.382713039 \\ \hline
+					Centroid 2 & 0.140304914 & -0.357027284 & 2.066552587 & 0.976243866 & -0.090900017 & -0.482491144 & -1.552067382 & 0.047354595\\ \hline
+				\end{tabular}%
+			}
+			\caption{Data Centroid Cluster Baru}
+			\label{tab:Data Centroid}
+		\end{table}
+		
+		\item Verifikasi Titik Centroid Baru\\
+		Setelah mendapatkan titik centroid baru, tahap selanjutnya yaitu memverifikasi titik centroid yang baru dengan titik centroid sebelumnya. Proses perhitungan K-Means Clustering ketika nilai titik centroid baru sama dengan nilai titik centroid sebelumnya, maka proses K-Means Clustering dikatakan selesai dan data telah ditempatkan pada kluster yang sesuai. Proses perhitungan K-Means Clustering ketika nilai titik centroid baru berbeda dengan centroid yang sebelumnya, maka proses K-Means Clustering masih tetap dilanjutkan dengan iterasi mulai dari langkah ke-3 hingga langkah ke-6, iterasi tersebut masih tetap terus dilakukan hingga titik centroid yang baru sama dengan titik sentroid yang sebelumnya.
+		
+		
+	\end{enumerate}
+	
+	
+	\subsection{Penerapan Algoritma Menggunakan Platform Google Colab}
+	
+	Setelah menggunakan cara manual, berikut akan dijelaskan algoritma K-Means menggunakan bantuan platform google colab 
+	
+	\begin{enumerate}
+		\item \textbf{Membuat model klustering menggunakan metode K-Means} \\
+		
+		%\begin{figure}[H]
+			%\centering
+			%\includegraphics[width=0.7\linewidth]{Cuplikan layar 2025-01-01 142952.png}
+			%\caption{Program Membuat Model Klustering Menggunakan Metode K-Means}
+			%\label{fig:enter-label}
+		%\end{figure}
+		
+		%\begin{figure}[H]
+			%\centering
+			%\includegraphics[width=0.6\linewidth]{Cuplikan layar 2025-01-01 143337.png}
+			%\caption{Grafik Ellbow}
+			%\label{fig:enter-label}
+		%\end{figure}
+		
+		%\begin{figure}[H]
+		%	\centering
+		%	\includegraphics[width=0.7\linewidth]{Cuplikan layar 2025-01-01 143441.png}
+		%	\caption{Hasil Running Program}
+		%	\label{fig:enter-label}
+		%\end{figure}
+		
+		Pada proses ini, dibuat model clustering menggunakan metode K-Means dengan tujuan untuk mengelompokkan data pasien gagal jantung berdasarkan karakteristik tertentu. Langkah awal dalam menggunakan K-Means adalah menentukan jumlah cluster (KKK) yang optimal. Penentuan nilai KKK dilakukan menggunakan metode Elbow, yang merupakan salah satu pendekatan visual untuk menilai jumlah cluster terbaik berdasarkan variasi dalam data.  Pada penelitian ini kami menggunakan python untuk menghitung jumlah kluster yang optimal menggunakan metode ellbow. 
+		
+		Grafik Elbow yang dihasilkan menunjukkan penurunan nilai Within-Cluster Sum of Squares (WCSS) seiring bertambahnya jumlah cluster. Pada titik tertentu, penurunan WCSS mulai melambat secara signifikan, menciptakan "titik siku" (elbow point), yang menjadi dasar untuk memilih jumlah cluster optimal. Dalam kasus ini, K=2  dianggap sebagai pilihan terbaik karena memberikan keseimbangan antara meminimalkan WCSS dan menghindari kompleksitas model yang berlebihan.
+		Setelah menentukan jumlah cluster optimal, algoritma K-Means dilatih ulang dengan K=2  menggunakan parameter seperti iterasi maksimum sebanyak 1000 untuk memastikan model mencapai konvergensi. Hasil clustering berupa label prediksi  yang mengelompokkan setiap data ke salah satu dari dua cluster. Nilai WCSS terakhir menunjukkan seberapa baik data dikelompokkan dalam dua cluster tersebut, dengan nilai yang lebih kecil menunjukkan bahwa data dalam cluster memiliki jarak yang lebih kecil terhadap centroid masing-masing.
+		
+		
+		\item\textbf{Visualisasi hasil model dengan kluster dan centroid kluster}\\
+		
+		%\begin{figure}[H]
+		%	\centering
+		%	\includegraphics[width=0.7\linewidth]{Cuplikan layar 2025-01-01 143744.png}
+		%	\caption{Program Visualisasi Hasil Model}
+		%	\label{fig:enter-label}
+		%\end{figure}
+		
+		%\begin{figure}[H]
+		%	\centering
+		%	\includegraphics[width=0.7\linewidth]{Cuplikan layar 2025-01-01 144758.png}
+		%	\caption{Program Mengecek Hasil Akurasi Model}
+		%	\label{fig:enter-label}
+		%\end{figure}
+		
+		%\begin{figure}[H]
+		%	\centering
+		%	\includegraphics[width=0.7\linewidth]{Cuplikan layar 2025-01-01 145016.png}
+		%	\caption{Program Mengecek Hasil Akurasi Model}
+		%	\label{fig:enter-label}
+		%\end{figure}
+		%\begin{figure}[h!]
+		%	\centering
+		%	\includegraphics[width=0.6\linewidth]{Cuplikan layar 2025-01-01 150620.png}
+		%	\caption{Hasil Visualisasi Model}
+		%	\label{fig:enter-label}
+		%\end{figure}
+		Hasil visualisasi cluster yang ditampilkan menunjukkan hubungan penting antara waktu penanganan (time) dan kadar kreatinin serum (serum creatinine) dalam kaitannya dengan prognosis pasien gagal jantung, yang secara langsung berkaitan dengan kehidupan dan kematian seseorang. Serum creatinine merupakan indikator fungsi ginjal, di mana kadar yang tinggi menandakan adanya gangguan ginjal yang sering kali berhubungan dengan kondisi gagal jantung yang lebih parah. Sementara itu, variabel time mencerminkan durasi perawatan pasien atau seberapa cepat mereka menerima intervensi medis.
+		
+		Hubungan antara kedua variabel ini dapat dilihat dari pola distribusi data dalam klaster. Pasien dengan kadar kreatinin serum yang lebih tinggi (klaster kuning) cenderung memiliki waktu perawatan yang lebih bervariasi, yang mengindikasikan bahwa beberapa pasien mungkin sudah dalam kondisi kritis sebelum mendapatkan penanganan yang memadai. Sebaliknya, pasien dengan kadar kreatinin serum yang lebih rendah (klaster ungu) menunjukkan pola yang lebih konsisten dalam waktu penanganan, yang mungkin mencerminkan efektivitas intervensi medis pada tahap yang lebih awal.
+		
+		Korelasi ini menunjukkan bahwa waktu penanganan yang lebih cepat dapat membantu mengurangi dampak buruk dari kadar kreatinin serum yang tinggi, sehingga meningkatkan peluang hidup pasien. Sebaliknya, jika penanganan terlambat, kadar kreatinin yang tinggi dapat memperburuk kondisi pasien, mempercepat kerusakan organ, dan meningkatkan risiko kematian. Dengan memahami hubungan antara kedua variabel ini, tenaga medis dapat memanfaatkan klaster untuk mengidentifikasi pasien yang membutuhkan penanganan segera, sehingga dapat menyelamatkan lebih banyak nyawa dan meningkatkan kualitas hidup pasien secara keseluruhan.
+		
+		
+		
+		\item\textbf{Mengecek hasil akurasi model}\\
+		
+		%\begin{figure}[H]
+		%	\centering
+		%	\includegraphics[width=0.6\linewidth]{Cuplikan layar 2025-01-01 145144.png}
+		%	\caption{Hasil Pengecekan Akurasi Model}
+		%	\label{fig:enter-label}
+		%\end{figure}
+		
+		Hasil dari kode yang sudah dijalankan   menunjukkan bahwa proses pengujian dilakukan untuk menemukan nilai random state terbaik yang menghasilkan akurasi pengelompokan tertinggi dalam model K-Means. Setelah melalui iterasi sebanyak 100 kali, ditemukan bahwa nilai random state sebesar 92 menghasilkan akurasi tertinggi, yaitu 77,93 persen. Hal ini berarti, pada konfigurasi tersebut, model K-Means mampu mengelompokkan data dengan tingkat kesesuaian yang lebih baik dibandingkan nilai random state lainnya. Hasil ini mencerminkan pengaruh signifikan dari inisialisasi centroid terhadap performa pengelompokan. 
+		
+		Proses ini penting dilakukan karena nilai random state dalam algoritma K-Means memengaruhi posisi awal centroid, yang menentukan jalannya proses pengelompokan. Posisi awal centroid yang kurang optimal dapat menyebabkan model jatuh ke solusi lokal yang kurang baik, sehingga hasil \textit{clustering} menjadi kurang representatif terhadap pola data sebenarnya. Dengan menguji berbagai nilai random state, dapat dipastikan bahwa model bekerja pada konfigurasi yang menghasilkan pengelompokan terbaik. Selain itu, mencari nilai random state terbaik membantu meningkatkan konsistensi hasil clustering. Karena K-Means adalah algoritma non-deterministik yang hasilnya dapat berbeda-beda tergantung pada inisialisasi, menemukan konfigurasi yang optimal memastikan bahwa pengelompokan yang dihasilkan memiliki akurasi tertinggi. Hal ini menjadi sangat penting terutama dalam penelitian berbasis kesehatan, seperti pada dataset gagal jantung, di mana kualitas pengelompokan dapat memengaruhi interpretasi pola data dan pengambilan keputusan klinis.
+		
+		
+		
+	\end{enumerate}
+	
+	
+	\chapter{Kesimpulan dan Saran}
+	\section{Kesimpulan}
+	Berdasarkan hasil penelitian dan analisis data yang telah dilakukan, dapat disimpulkan bahwa penerapan algoritma K-Means \textit{clustering} pada dataset pasien gagal jantung berhasil mengelompokkan pasien berdasarkan karakteristik klinis dan laboratorium, seperti usia, jenis kelamin, anemia, kadar enzim kreatinin fosfokinase, penderita diabetes, fraksi ejeksi, penderita hipertensi, trombosit, kadar kreatinin serum, kadar natrium serum, riwayat merokok dan waktu penanganan. Hasil pengelompokan menunjukkan adanya beberapa pola atau kelompok utama yang dapat diidentifikasi, 2 kelompok yaitu pasien yang memiliki risiko kematian tinggi dan pasien yang memiliki risiko kematian rendah. Variabel-variabel seperti usia, jenis kelamin, anemia, kadar enzim kreatinin fosfokinase, penderita diabetes, fraksi ejeksi, penderita hipertensi, trombosit, kadar kreatinin serum, kadar natrium serum, riwayat merokok dan waktu penanganan terbukti memiliki kontribusi signifikan dalam menentukan pengelompokan pasien, dengan {ejection fraction} dan {usia} menjadi faktor dominan dalam memisahkan kelompok berisiko tinggi. Hasil 2 pengelompokan ini dapat membantu pengambilan keputusan klinis dalam pengelolaan pasien gagal jantung, dengan memberikan gambaran yang lebih jelas tentang kelompok pasien yang membutuhkan perhatian lebih, pemantauan ketat, atau terapi yang lebih agresif. Dengan demikian, penerapan K-Means dalam penelitian ini terbukti efektif untuk meningkatkan pemahaman tentang faktor risiko dan prediksi mengenai perkembangan penyakit pada pasien gagal jantung.
+	
+	\section{Saran}
+	Berdasarkan hasil penelitian ini, beberapa saran yang dapat diajukan untuk pengembangan lebih lanjut dan implementasi praktis, sebagai berikut:
+	\begin{enumerate}
+		\item Pada penelitian selanjutnya disarankan untuk mengumpulkan data yang digunakan lebih lengkap dengan mencakup lebih banyak variabel klis dan biokimiawi yang relevan, seperti faktor gaya hidup dan kondisi komorbiditas lainnya, sehingga nilai akurasi dan hasil pengelompokan lebih meningkat.
+		\item Dengan menggunakan algoritma K-Means dapat berhasil mengidentifikasi kelompok pasien dengan baik, namun diharapkan untuk melakukan klustering dengan algoritma yang lain juga seperti DBSCAN atau hierarchical \textit{clustering} untuk mendapatkan pengelompokan pasien yang optimal.
+		\item Hasil pengelompokan sebaiknya dikombinasikan dengan model pembelajaran mesin lainnya, seperti pohon keputusan atau regresi logistik, untuk membangun model prediktif yang dapat memprediksi risiko kematian pada pasien gagal jantung.
+		\item Dalam mengimplementasi praktis hasil dari penelitian, perhatikan pada aspek-aspek berikut:
+		\begin{itemize}
+			\item Rumah sakit dan fasilitas kesehatan dapat mengadakan pelatihan untuk tenaga medis mengenai interpretasi hasil pengelompokan pasien dan bagaimana hasil tersebut dapat digunakan dalam pengambilan keputusan klinis.
+			\item Mengembangkan sistem berbasis data yang dapat diintegrasikan ke dalam sistem informasi rumah sakit untuk otomatisasi pengelompokan pasien dan penyediaan rekomendasi perawatan sesuai dengan kelompok risiko.
+			\item Membuat protokol perawatan khusus untuk kelompok risiko tinggi, termasuk jadwal pemantauan yang lebih sering, pemeriksaan laboratorium tambahan, dan terapi yang lebih agresif.
+		\end{itemize}
+		\item Dengan menggunakan dataset yang lebih besar dan beragam, hasil \textit{clustering} dapat digeneralisasi ke populasi yang lebih luas dan dapat diterapkan di berbagai bidang klinis.
+	\end{enumerate}
+	
+	\begin{thebibliography}{9}  
+		\bibitem{Ali}Ali, M. M., Al-Doori, V. S., Mirzah, N., Hemu, A. A., Mahmud, I., Azam, S., Al-tabatabaie, K. F., Ahmed, K., Bui, F. M., \& Moni, M. A. (2023). \textit{A machine learning approach for risk factors analysis and survival prediction of Heart Failure patients. Healthcare Analytics, 3.} https://doi.org/10.1016/j.health.2023.100182
+		\bibitem{Chávez-Íñiguez}Chávez-Íñiguez, J. S., Ivey-Miranda, J. B., De la Vega-Mendez, F. M., \& Borges-Vela, J. A. (2023). \textit{How to interpret serum creatinine increases during decongestion}. In Frontiers in Cardiovascular Medicine (Vol. 9). Frontiers Media S.A. https://doi.org/10.3389/fcvm.2022.1098553
+		\bibitem{Chicco}Chicco, D., \& Jurman, G. (2020). \textit{Machine learning can predict survival of patients with heart failure from serum creatinine and ejection fraction alone}. BMC Medical Informatics and Decision Making, 20(1). https://doi.org/10.1186/s12911-020-1023-5
+		\bibitem{Dahlen}Dahlen, B., Schulz, A., Göbel, S., Tröbs, S. O., Schwuchow-Thonke, S., Spronk, H. M., Prochaska, J. H., Arnold, N., Lackner, K. J., Gori, T., ten Cate, H., Münzel, T., Wild, P. S., \& Panova-Noeva, M. (2021). \textit{The impact of platelet indices on clinical outcome in heart failure: results from the MyoVasc study}. ESC Heart Failure, 8(4), 2991–3001. https://doi.org/10.1002/ehf2.13390
+		\bibitem{Doifode}Doifode, M. G., Aglave, M. H., Jaybhaye, D. S., Rawat, S., \& Pawar, M. (2024). \textit{EPRA International Journal of Research and Development (IJRD) CASE STUDY OF HEART FAILURE.} https://doi.org/10.36713/epra2016
+		\bibitem{Elendu}Elendu, C., Amaechi, D. C., Elendu, T. C., Ashna, M., Ross-Comptis, J., Ansong, S. O., Egbunu, E. O., Okafor, G. C., Jingwa, K. A., Akintunde, A. A., Ogah, C. M., Edeko, M. O., Ibitoye, A. V., Ogunseye, M. O., Alakwe-Ojimba, C. E., Omeludike, E. K., Oguine, C. A., Afuh, R. N., Olawuni, C. A., … Aborisade, O. (2023). \textit{Heart failure and diabetes: Understanding the bidirectional relationship}. In Medicine (United States) (Vol. 102, Issue 37, p. E34906). Lippincott Williams and Wilkins. https://doi.org/10.1097/MD.0000000000034906
+		\bibitem{Ester}Ester, M., Kriegel, H.-P., Sander, J., \& Xu, X. (1996). \textit{A Density-Based Algorithm for Discovering Clusters in Large Spatial Databases with Noise.}www.aaai.org 
+		\bibitem{Grote Beverborg}Grote Beverborg, N., van Veldhuisen, D. J., \& van der Meer, P. (2018). \textit{Anemia in Heart Failure: Still Relevant?} In JACC: Heart Failure (Vol. 6, Issue 3, pp. 201–208). Elsevier Inc. https://doi.org/10.1016/j.jchf.2017.08.023
+		\bibitem{Halvorsen}Halvorsen, S., Mehilli, J., Cassese, S., Hall, T. S., Abdelhamid, M., Barbato, E., De Hert, S., De Laval, I., Geisler, T., Hinterbuchner, L., Ibanez, B., Lenarczyk, R., Mansmann, U. R., McGreavy, P., Mueller, C., Muneretto, C., Niessner, A., Potpara, T. S., Ristić, A., … Zacharowski, K. (2022). \textit{2022 ESC Guidelines on cardiovascular assessment and management of patients undergoing non-cardiac surgery.} In European Heart Journal (Vol. 43, Issue 39, pp. 3826–3924). Oxford University Press. https://doi.org/10.1093/eurheartj/ehac270
+		\bibitem{Heidenreich}Heidenreich, P. A., Bozkurt, B., Aguilar, D., Allen, L. A., Byun, J. J., Colvin, M. M., Deswal, A., Drazner, M. H., Dunlay, S. M., Evers, L. R., Fang, J. C., Fedson, S. E., Fonarow, G. C., Hayek, S. S., Hernandez, A. F., Khazanie, P., Kittleson, M. M., Lee, C. S., Link, M. S., … Yancy, C. W. (2022). \textit{2022 AHA/ACC/HFSA Guideline for the Management of Heart Failure: A Report of the American College of Cardiology/American Heart Association Joint Committee on Clinical Practice Guidelines.} Journal of the American College of Cardiology, 79(17), e263–e421. https://doi.org/10.1016/j.jacc.2021.12.012
+		\bibitem{Jain}Jain, A. K., Murty, M. N., \& Flynn, P. J. (2000). \textit{Data Clustering: A Review}.
+		\bibitem{Khanna}Khanna, D., Sahu, R., Baths, V., \& Deshpande, B. (2015). \textit{Comparative Study of Classification Techniques (SVM, Logistic Regression and Neural Networks) to Predict the Prevalence of Heart Disease}. International Journal of Machine Learning and Computing, 5(5), 414–419. https://doi.org/10.7763/ijmlc.2015.v5.544
+		\bibitem{Savarese}Savarese, G., Becher, P. M., Lund, L. H., Seferovic, P., Rosano, G. M. C., \& Coats, A. J. S. (2022). \textit{Global burden of heart failure: a comprehensive and updated review of epidemiology.} In Cardiovascular Research (Vol. 118, Issue 17, pp. 3272–3287). Oxford University Press. https://doi.org/10.1093/cvr/cvac013
+		\bibitem{Zhang}Zhang, L., Huang, T., Xu, F., Li, S., Zheng, S., Lyu, J., \& Yin, H. (2022). \textit{Prediction of prognosis in elderly patients with sepsis based on machine learning (random survival forest). BMC Emergency Medicine, 22(1).} https://doi.org/10.1186/s12873-022-00582-z
+		
+	\end{thebibliography}
+	
+	\appendix
+	\lstset{
+		language=Python,
+		basicstyle=\ttfamily\footnotesize,
+		numbers=left,
+		xleftmargin=0pt, % Atur agar margin kiri tidak menambahkan ruang ekstra
+		frame=single,    % Tambahkan bingkai di sekitar kode
+		breaklines=true, % Otomatis memotong baris panjang
+		postbreak=\mbox{\textcolor{red}{$\hookrightarrow$}\space}, % Tambahkan simbol saat kode dipotong
+	}
+	
+	\chapter{\textit{Source Code}}
+	Tuliskan \textit{source code} disini. Berikut adalah contoh \textit{source code}:
+	%\lstinputlisting[language=python, basicstyle=\ttfamily, numbers=left]{Source_code_komat.py} %ganti epidemiology.py dengan file Anda
+\end{document}
